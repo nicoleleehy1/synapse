@@ -8,6 +8,7 @@ from app.dependencies import get_graph_store
 from app.models import (
     CreateEdgeRequest,
     CreateNodeRequest,
+    UpdateNodeRequest,
     EdgeOrphanInfo,
     GraphEdge,
     GraphNode,
@@ -85,7 +86,7 @@ async def create_node(
     body: CreateNodeRequest,
     graph_store: GraphStore = Depends(get_graph_store),
 ):
-    """Create a new entity and link it to an existing parent entity."""
+    """Create a new entity and optionally link it to an existing parent entity."""
     new_entity = Entity(
         name=body.name,
         type=body.type.upper(),
@@ -93,26 +94,39 @@ async def create_node(
         source_document="Manual",
         source_chunk_ids=[],
     )
-
-    if body.relationship_direction == "out":
-        src_id, tgt_id = body.parent_entity_id, new_entity.id
-    else:
-        src_id, tgt_id = new_entity.id, body.parent_entity_id
-
-    rel = Relationship(
-        source_entity_id=src_id,
-        target_entity_id=tgt_id,
-        type=body.relationship_type.upper().replace(" ", "_"),
-        confidence=body.confidence,
-        source_chunk_id="",
-        source_document="Manual",
-    )
-
     graph_store.create_entity(new_entity)
-    graph_store.create_relationship(rel)
+
+    if body.parent_entity_id and body.relationship_type:
+        if body.relationship_direction == "out":
+            src_id, tgt_id = body.parent_entity_id, new_entity.id
+        else:
+            src_id, tgt_id = new_entity.id, body.parent_entity_id
+
+        rel = Relationship(
+            source_entity_id=src_id,
+            target_entity_id=tgt_id,
+            type=body.relationship_type.upper().replace(" ", "_"),
+            confidence=body.confidence,
+            source_chunk_id="",
+            source_document="Manual",
+        )
+        graph_store.create_relationship(rel)
 
     # Return the immediate neighbourhood so the frontend can merge it in
     return graph_store.get_entity_neighbourhood(new_entity.id, hop_depth=1)
+
+
+@router.patch("/nodes/{entity_id}", response_model=GraphNode)
+async def update_node(
+    entity_id: str,
+    body: UpdateNodeRequest,
+    graph_store: GraphStore = Depends(get_graph_store),
+):
+    """Partially update an entity's name, type, or description."""
+    updated = graph_store.update_entity(entity_id, body.name, body.type, body.description)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Entity not found")
+    return updated
 
 
 @router.post("/edges", response_model=GraphEdge)

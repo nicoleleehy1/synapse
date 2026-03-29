@@ -115,10 +115,16 @@ class CreateNodeRequest(BaseModel):
     name: str
     type: str = "CONCEPT"
     description: Optional[str] = None
-    parent_entity_id: str
-    relationship_type: str
+    parent_entity_id: Optional[str] = None
+    relationship_type: Optional[str] = None
     relationship_direction: str = "out"   # "out" = parent→new, "in" = new→parent
     confidence: float = Field(ge=0.0, le=1.0, default=1.0)
+
+
+class UpdateNodeRequest(BaseModel):
+    name: Optional[str] = None
+    type: Optional[str] = None
+    description: Optional[str] = None
 
 
 class CreateEdgeRequest(BaseModel):

@@ -15,7 +15,7 @@ function node(id: string, name: string, type: string, description?: string) {
   const s = STYLE[type] ?? STYLE.OTHER
   return {
     id, name, type,
-    description: description ?? null,
+    description,
     source_document: 'Sample',
     chunk_count: 1,
     color: s.bg,
@@ -30,7 +30,7 @@ function edge(
 ) {
   return {
     id, source, target, type,
-    description: description ?? null,
+    description,
     confidence,
     source_document: 'Sample',
     color: `rgba(0,0,0,${Math.max(0.06, confidence * 0.15)})`,

@@ -82,10 +82,16 @@ export interface CreateNodePayload {
   name: string
   type: string
   description?: string
-  parent_entity_id: string
-  relationship_type: string
-  relationship_direction: 'out' | 'in'
-  confidence: number
+  parent_entity_id?: string
+  relationship_type?: string
+  relationship_direction?: 'out' | 'in'
+  confidence?: number
+}
+
+export interface UpdateNodePayload {
+  name?: string
+  type?: string
+  description?: string
 }
 
 export interface CreateEdgePayload {

@@ -220,6 +220,36 @@ class GraphStore:
         """Upsert a manually created entity (no chunk linkage required)."""
         self.upsert_entity(entity)
 
+    def update_entity(
+        self,
+        entity_id: str,
+        name: Optional[str],
+        type_: Optional[str],
+        description: Optional[str],
+    ) -> Optional[GraphNode]:
+        """Partially update an existing entity and return the updated node."""
+        sets: list[str] = []
+        params: dict = {"id": entity_id}
+        if name is not None:
+            sets.append("e.name = $name")
+            params["name"] = name
+        if type_ is not None:
+            sets.append("e.type = $type")
+            params["type"] = type_.upper()
+        if description is not None:
+            sets.append("e.description = $description")
+            params["description"] = description
+        with self._session() as s:
+            if sets:
+                result = s.run(
+                    f"MATCH (e:Entity {{id: $id}}) SET {', '.join(sets)} RETURN e",
+                    **params,
+                )
+            else:
+                result = s.run("MATCH (e:Entity {id: $id}) RETURN e", id=entity_id)
+            record = result.single()
+            return self._record_to_node(record["e"]) if record else None
+
     def create_relationship(self, rel: "Relationship") -> None:  # type: ignore[name-defined]
         """Upsert a manually created relationship."""
         with self._session() as s:

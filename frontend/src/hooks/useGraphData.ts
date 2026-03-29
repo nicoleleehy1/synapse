@@ -14,7 +14,7 @@ const ENTITY_STYLE: Record<string, { bg: string; text: string }> = {
   OTHER:        { bg: '#d4d4d4', text: '#0a0a0a' },  // chart-1
 }
 
-function toFGData(data: GraphData): FGData {
+export function toFGData(data: GraphData): FGData {
   const nodes: FGNode[] = data.nodes.map((n) => {
     const style = ENTITY_STYLE[n.type] ?? ENTITY_STYLE.OTHER
     return {

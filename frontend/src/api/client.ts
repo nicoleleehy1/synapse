@@ -1,7 +1,7 @@
 import axios from 'axios'
 import type {
   DocumentStatus, GraphData, QueryResponse,
-  CreateNodePayload, CreateEdgePayload, GraphEdge,
+  CreateNodePayload, UpdateNodePayload, CreateEdgePayload, GraphEdge, GraphNode,
   OrphanInfo, EdgeOrphanInfo,
 } from '../types/graph'
 
@@ -62,6 +62,11 @@ export async function queryGraph(
 
 export async function createNode(payload: CreateNodePayload): Promise<GraphData> {
   const { data } = await api.post('/graph/nodes', payload)
+  return data
+}
+
+export async function updateNode(entityId: string, payload: UpdateNodePayload): Promise<GraphNode> {
+  const { data } = await api.patch(`/graph/nodes/${entityId}`, payload)
   return data
 }
 
